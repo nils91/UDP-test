@@ -1,3 +1,4 @@
+package de.dralle;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,12 +10,28 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import de.dralle.network.NetworkHelper;
+import de.dralle.network.udp.ByteDataSentCallback;
 import de.dralle.network.udp.UDPByteReceiver;
 import de.dralle.network.udp.UDPByteSender;
 
 public class Main {
+	static ByteDataSentCallback bdsCallback;
 	static UDPByteReceiver server;
 	public static void main(String[] args) {
+		bdsCallback=new ByteDataSentCallback() {
+			
+			@Override
+			public void byteDataSent(String address, int port, byte[] data) {
+				System.out.println(data.length+" bytes sent to "+address+" UDP port "+port+".");
+				
+			}
+			
+			@Override
+			public void byteDataSendFailed(String address, int port, byte[] data, Exception e) {
+				System.out.println("Send of "+data.length+" bytes to "+address+" UDP port "+port+" failed. Exception: "+e.getMessage());
+				
+			}
+		};
 		server=new UDPByteReceiver();
 		System.out.println("UDP Test");
 		System.out.println("---------------");
@@ -150,12 +167,8 @@ public class Main {
 					}
 					if(port>0) {
 						UDPByteSender client=new UDPByteSender();
-						if(client.send(hostAddress.getHostAddress(), port, input.getBytes())) {
-							System.out.println("Message "+input+" sent to "+hostAddress.getHostAddress()+" UDP port "+port);
-						}else {
-							System.out.println("Message "+input+" could not be sent to "+hostAddress.getHostAddress()+" UDP port "+port);
-							
-						}
+						client.addByteDataSentCallback(bdsCallback);
+						client.send(hostAddress.getHostAddress(), port, input.getBytes());
 					}
 				}
 			}
@@ -182,12 +195,9 @@ public class Main {
 					}
 					if(port>0) {
 						UDPByteSender client=new UDPByteSender();
-						if(client.sendLocalhost(port, input.getBytes())) {
-							System.out.println("Message "+input+" sent to UDP port "+port+" on localhost");
-						}else {
-							System.out.println("Message "+input+" could not be sent");
-							
-						}
+
+						client.addByteDataSentCallback(bdsCallback);
+						client.sendLocalhost(port, input.getBytes());
 					}
 				
 			}
@@ -213,12 +223,9 @@ public class Main {
 					}
 					if(port>0) {
 						UDPByteSender client=new UDPByteSender();
-						if(client.sendLoopback(port, input.getBytes())) {
-							System.out.println("Message "+input+" sent to UDP port "+port+" on loopback");
-						}else {
-							System.out.println("Message "+input+" could not be sent");
-							
-						}
+
+						client.addByteDataSentCallback(bdsCallback);
+						client.sendLoopback(port, input.getBytes());
 					}
 				
 			}
@@ -244,6 +251,8 @@ public class Main {
 					}
 					if(port>0) {
 						UDPByteSender client=new UDPByteSender();
+
+						client.addByteDataSentCallback(bdsCallback);
 						client.sendBroadcast(port, input.getBytes());
 					}
 				
