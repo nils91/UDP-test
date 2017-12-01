@@ -11,9 +11,9 @@ import java.net.SocketTimeoutException;
 import network.NetworkHelper;
 
 public class Main {
-	static UDPByteServer server;
+	static UDPByteReceiver server;
 	public static void main(String[] args) {
-		server=new UDPByteServer();
+		server=new UDPByteReceiver();
 		System.out.println("UDP Test");
 		System.out.println("---------------");
 		while (true) {
@@ -147,7 +147,7 @@ public class Main {
 						System.out.println("Failed: "+e.getMessage());
 					}
 					if(port>0) {
-						UDPByteClient client=new UDPByteClient();
+						UDPByteSender client=new UDPByteSender();
 						if(client.send(hostAddress.getHostAddress(), port, input.getBytes())) {
 							System.out.println("Message "+input+" sent to "+hostAddress.getHostAddress()+" UDP port "+port);
 						}else {
@@ -179,7 +179,7 @@ public class Main {
 						System.out.println("Failed: "+e.getMessage());
 					}
 					if(port>0) {
-						UDPByteClient client=new UDPByteClient();
+						UDPByteSender client=new UDPByteSender();
 						if(client.sendLocalhost(port, input.getBytes())) {
 							System.out.println("Message "+input+" sent to UDP port "+port+" on localhost");
 						}else {
@@ -210,7 +210,7 @@ public class Main {
 						System.out.println("Failed: "+e.getMessage());
 					}
 					if(port>0) {
-						UDPByteClient client=new UDPByteClient();
+						UDPByteSender client=new UDPByteSender();
 						if(client.sendLoopback(port, input.getBytes())) {
 							System.out.println("Message "+input+" sent to UDP port "+port+" on loopback");
 						}else {
@@ -241,7 +241,7 @@ public class Main {
 						System.out.println("Failed: "+e.getMessage());
 					}
 					if(port>0) {
-						UDPByteClient client=new UDPByteClient();
+						UDPByteSender client=new UDPByteSender();
 						client.sendBroadcast(port, input.getBytes());
 					}
 				
@@ -276,7 +276,7 @@ public class Main {
 			System.out.println(add.getHostAddress());
 		}
 		int port = 3112;
-		UDPByteServer server = new UDPByteServer();
+		UDPByteReceiver server = new UDPByteReceiver();
 		server.setPort(port);
 		boolean exception = false;
 		do {
@@ -291,7 +291,7 @@ public class Main {
 		System.out.println("Server activated on port " + port);
 		server.startReceiving();
 		System.out.println("Message receiver thread started");
-		UDPByteClient client = new UDPByteClient();
+		UDPByteSender client = new UDPByteSender();
 		byte[] data = new byte[] { 1, 2, 3, 4 };
 		client.sendLocalhost(port, data);
 		System.out.println("Data sent to localhost");

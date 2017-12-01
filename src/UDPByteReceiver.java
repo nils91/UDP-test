@@ -6,7 +6,7 @@ import java.net.SocketTimeoutException;
 
 import network.NetworkHelper;
 
-public class UDPByteServer {
+public class UDPByteReceiver {
 	/**
 	 * Port to be used. Can be set using the parameterezized constructor. 
 	 */
@@ -53,11 +53,11 @@ public class UDPByteServer {
 		return receiving;
 	}
 
-	public UDPByteServer() {
+	public UDPByteReceiver() {
 		
 	}
 
-	public UDPByteServer(int port) {
+	public UDPByteReceiver(int port) {
 		this();
 		if (port > 0) {
 			this.port = port;

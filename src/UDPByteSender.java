@@ -12,7 +12,7 @@ import network.NetworkHelper;
  * @author nils
  *
  */
-public class UDPByteClient {
+public class UDPByteSender {
 	/**
 	 * Default send timeout 500ms
 	 */
@@ -33,7 +33,7 @@ public class UDPByteClient {
 		this.timeout = timeout;
 	}
 
-	public UDPByteClient() {
+	public UDPByteSender() {
 
 	}
 
