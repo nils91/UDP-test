@@ -2,8 +2,12 @@ package de.dralle.network.udp;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.DatagramSocketImpl;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketAddress;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.dralle.network.NetworkHelper;
@@ -14,6 +18,30 @@ import de.dralle.network.NetworkHelper;
  *
  */
 public class UDPByteSender {
+	/**
+	 * List of all bound callbacks
+	 */
+	private ArrayList<ByteDataSentCallback> bdsCallbacks;
+	/**
+	 * Add a callback
+	 * @param callback
+	 */
+	public void addByteDataSentCallback(ByteDataSentCallback callback) {
+		bdsCallbacks.add(callback);
+	}
+	public boolean removeByteDataSentCallback(ByteDataSentCallback callback) {
+		return bdsCallbacks.remove(callback);
+	}
+	private void notifyCallbacksOfSentFailure(String address, int port, byte[] data, Exception e) {
+		for (ByteDataSentCallback b : bdsCallbacks) {
+			b.byteDataSendFailed(address, port, data, e);
+		}
+	}
+	private void notifyCallbacksOfSent(String address, int port, byte[] data) {
+		for (ByteDataSentCallback b : bdsCallbacks) {
+			b.byteDataSent(address, port, data);
+		}
+	}
 	/**
 	 * Default send timeout 500ms
 	 */
@@ -35,7 +63,7 @@ public class UDPByteSender {
 	}
 
 	public UDPByteSender() {
-
+		bdsCallbacks=new ArrayList<>();
 	}
 
 	public boolean send(String host, int port, byte[] data) {
@@ -45,24 +73,33 @@ public class UDPByteSender {
 			try {
 				socket = new DatagramSocket();
 			} catch (SocketException e) {
-
+				notifyCallbacksOfSentFailure(address.getHostAddress(), port, data, e);
 			}
 			if (socket != null) {
+				boolean setTimeoutFailed=false;
 				try {
 					socket.setSoTimeout(timeout);
 				} catch (SocketException e) {
-
+					setTimeoutFailed=true;
+					notifyCallbacksOfSentFailure(address.getHostAddress(), port, data, e);
 				}
-				DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
-				boolean send = false;
-				try {
-					socket.send(packet);
-					send = true;
-				} catch (IOException e) {
-					send = false;
+				if(!setTimeoutFailed) {
+						DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
+					boolean send = false;
+					try {
+						socket.send(packet);
+						send = true;
+						notifyCallbacksOfSent(address.getHostAddress(), port, data);
+					} catch (IOException e) {
+						send = false;
+						notifyCallbacksOfSentFailure(address.getHostAddress(), port, data, e);
+					}
+					socket.close();
+					return send;
+				}else {
+					return false;
 				}
-				socket.close();
-				return send;
+				
 			} else {
 				return false;
 			}
