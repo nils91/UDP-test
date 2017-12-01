@@ -1,10 +1,11 @@
+package de.dralle.network.udp;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
-import network.NetworkHelper;
+import de.dralle.network.NetworkHelper;
 
 public class UDPByteReceiver {
 	/**

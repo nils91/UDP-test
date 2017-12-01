@@ -1,7 +1,7 @@
 /**
  * 
  */
-package network;
+package de.dralle.network;
 
 import java.net.InetAddress;
 import java.net.InterfaceAddress;

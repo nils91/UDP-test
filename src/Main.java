@@ -8,7 +8,9 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
-import network.NetworkHelper;
+import de.dralle.network.NetworkHelper;
+import de.dralle.network.udp.UDPByteReceiver;
+import de.dralle.network.udp.UDPByteSender;
 
 public class Main {
 	static UDPByteReceiver server;
