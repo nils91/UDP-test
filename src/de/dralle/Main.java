@@ -22,13 +22,13 @@ public class Main {
 		bdsCallback=new ByteDataSentCallback() {
 			
 			@Override
-			public void byteDataSent(String address, int port, byte[] data) {
+			public void onByteDataSent(String address, int port, byte[] data) {
 				System.out.println(data.length+" bytes sent to "+address+" UDP port "+port+".");
 				
 			}
 			
 			@Override
-			public void byteDataSendFailed(String address, int port, byte[] data, Exception e) {
+			public void onByteDataSendFailed(String address, int port, byte[] data, Exception e) {
 				System.out.println("Send of "+data.length+" bytes to "+address+" UDP port "+port+" failed. Exception: "+e.getMessage());
 				
 			}

@@ -34,12 +34,12 @@ public class UDPByteSender {
 	}
 	private void notifyCallbacksOfSentFailure(String address, int port, byte[] data, Exception e) {
 		for (ByteDataSentCallback b : bdsCallbacks) {
-			b.byteDataSendFailed(address, port, data, e);
+			b.onByteDataSendFailed(address, port, data, e);
 		}
 	}
 	private void notifyCallbacksOfSent(String address, int port, byte[] data) {
 		for (ByteDataSentCallback b : bdsCallbacks) {
-			b.byteDataSent(address, port, data);
+			b.onByteDataSent(address, port, data);
 		}
 	}
 	/**
