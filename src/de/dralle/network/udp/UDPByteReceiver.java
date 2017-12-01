@@ -232,6 +232,7 @@ public class UDPByteReceiver {
 
 		}
 		server.close();
+		notifyCallbacksOfDeactivation(port);
 		boolean prev = server != null;
 		server = null;
 		return prev;
