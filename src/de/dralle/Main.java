@@ -10,6 +10,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import de.dralle.network.NetworkHelper;
+import de.dralle.network.udp.ByteDataReceivedCallback;
 import de.dralle.network.udp.ByteDataSentCallback;
 import de.dralle.network.udp.UDPByteReceiver;
 import de.dralle.network.udp.UDPByteSender;
@@ -33,6 +34,38 @@ public class Main {
 			}
 		};
 		server=new UDPByteReceiver();
+		server.addCallback(new ByteDataReceivedCallback() {
+			
+			@Override
+			public void onReceivingStop(int port) {
+				System.out.println("Message receiver on UDP port "+port+" stopped.");
+				
+			}
+			
+			@Override
+			public void onReceivingStart(int receivingPort) {
+				System.out.println("Message receiver on UDP port "+receivingPort+" started.");
+				
+			}
+			
+			@Override
+			public void onDeactivate(int port) {
+				System.out.println("Message receiver on UDP port "+port+" deactivated.");
+				
+			}
+			
+			@Override
+			public void onByteDataReceived(String address, int port, byte[] data) {
+				System.out.println(data.length+" bytes from "+address+" UDP port "+port+" received.");
+				
+			}
+			
+			@Override
+			public void onActivate(int activePort) {
+				System.out.println("Message receiver on UDP port "+activePort+" activated.");
+				
+			}
+		});
 		System.out.println("UDP Test");
 		System.out.println("---------------");
 		while (true) {
