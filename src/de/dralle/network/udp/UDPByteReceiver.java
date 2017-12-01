@@ -1,15 +1,28 @@
 package de.dralle.network.udp;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 
 import de.dralle.network.NetworkHelper;
 
 public class UDPByteReceiver {
+	private ArrayList<ByteDataReceivedCallback> bdrCallbacks;
+
+	public int addCallback(ByteDataReceivedCallback callback) {
+		bdrCallbacks.add(callback);
+		return bdrCallbacks.size();
+	}
+
+	public boolean removeCallback(ByteDataReceivedCallback callback) {
+		return bdrCallbacks.remove(callback);
+	}
+
 	/**
-	 * Port to be used. Can be set using the parameterezized constructor. 
+	 * Port to be used. Can be set using the parameterezized constructor.
 	 */
 	private int port;
 	private volatile DatagramSocket server = null;
@@ -27,7 +40,8 @@ public class UDPByteReceiver {
 	}
 
 	/**
-	 * @param port the port to set
+	 * @param port
+	 *            the port to set
 	 */
 	public void setPort(int port) {
 		this.port = port;
@@ -41,7 +55,8 @@ public class UDPByteReceiver {
 	}
 
 	/**
-	 * @param timeout the timeout to set
+	 * @param timeout
+	 *            the timeout to set
 	 */
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
@@ -55,7 +70,7 @@ public class UDPByteReceiver {
 	}
 
 	public UDPByteReceiver() {
-		
+		bdrCallbacks = new ArrayList<>();
 	}
 
 	public UDPByteReceiver(int port) {
@@ -66,15 +81,47 @@ public class UDPByteReceiver {
 
 	}
 
+	public void notifyCallbacksOfNewData(String address, int port, byte[] data) {
+		for (ByteDataReceivedCallback byteDataReceivedCallback : bdrCallbacks) {
+			byteDataReceivedCallback.onByteDataReceived(address, port, data);
+		}
+	}
+
+	public void notifyCallbacksOfActivation(int activePort) {
+		for (ByteDataReceivedCallback byteDataReceivedCallback : bdrCallbacks) {
+			byteDataReceivedCallback.onActivate(activePort);
+		}
+	}
+
+	public void notifyCallbacksOfDeactivation(int port) {
+		for (ByteDataReceivedCallback byteDataReceivedCallback : bdrCallbacks) {
+			byteDataReceivedCallback.onDeactivate(port);
+		}
+	}
+
+	public void notifyCallbacksOfReceiverStart(int activePort) {
+		for (ByteDataReceivedCallback byteDataReceivedCallback : bdrCallbacks) {
+			byteDataReceivedCallback.onReceivingStart(activePort);
+		}
+	}
+
+	public void notifyCallbacksOfReceiverStop(int port) {
+		for (ByteDataReceivedCallback byteDataReceivedCallback : bdrCallbacks) {
+			byteDataReceivedCallback.onReceivingStop(port);
+		}
+	}
+
 	/**
 	 * Tries to create socket. Won´´t start the receiving thread
 	 * 
 	 * @return true if succesful
 	 * @throws SocketException
-	 *             Underlying Socketêxception if can´t create socket. Can happen if port is already in use
+	 *             Underlying Socketêxception if can´t create socket. Can happen
+	 *             if port is already in use
 	 */
 	public boolean activate() throws SocketException {
 		server = new DatagramSocket(port);
+		notifyCallbacksOfActivation(port);
 		return server != null;
 
 	}
@@ -109,7 +156,7 @@ public class UDPByteReceiver {
 	protected void receiverLoop() {
 		if (server != null) {// check if server is available
 			receiving = true;
-			int packetSize=NetworkHelper.getInstance().getHighestMTU();
+			int packetSize = NetworkHelper.getInstance().getHighestMTU();
 			try {
 				server.setSoTimeout(timeout); // set timeout
 			} catch (SocketException e) {
@@ -124,6 +171,9 @@ public class UDPByteReceiver {
 			} catch (SocketException e) {
 				receiving = false;
 			}
+			if (receiving) {
+				notifyCallbacksOfReceiverStart(port);
+			}
 			while (receiving) {
 				boolean timeout = false;
 
@@ -132,32 +182,43 @@ public class UDPByteReceiver {
 				try {
 					server.receive(receivePacket);
 				} catch (SocketTimeoutException ste) {
-					System.out.println("Timeout and no data received");
 					timeout = true;
 				} catch (IOException e) {
 					receiving = false;
 				}
 				if (!timeout) {
-					System.out.println("Data received. "+receivePacket.getLength()+ " bytes");
-					System.out.println(receivePacket.getSocketAddress());
+					try {
+
+						byte[] data = new byte[receivePacket.getLength()];
+						for (int i = 0; i < receivePacket.getLength(); i++) {
+							data[i] = receivePacket.getData()[receivePacket.getOffset() + i];
+						}
+						notifyCallbacksOfNewData(receivePacket.getAddress().getHostAddress(), receivePacket.getPort(),
+								data);
+					} catch (Exception e) {
+						receiving = false;
+					}
 
 				}
 			}
+			notifyCallbacksOfReceiverStop(port);
 
 		}
 
 	}
+
 	/**
 	 * Stop the message receiver thread for this server
 	 * 
 	 * @return value indicates previous status
 	 */
 	public boolean stopReceiving() {
-		boolean prev=receiving;
-		receiving=false;
+		boolean prev = receiving;
+		receiving = false;
 		return prev;
 
 	}
+
 	/**
 	 * Deactivate this server
 	 * 
@@ -168,11 +229,11 @@ public class UDPByteReceiver {
 		try {
 			Thread.sleep(timeout);
 		} catch (InterruptedException e) {
-			
+
 		}
-		boolean prev=server!=null;
 		server.close();
-		server=null;
+		boolean prev = server != null;
+		server = null;
 		return prev;
 
 	}

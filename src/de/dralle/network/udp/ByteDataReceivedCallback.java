@@ -10,7 +10,7 @@ package de.dralle.network.udp;
 public interface ByteDataReceivedCallback {
 	public void onByteDataReceived(String address, int port, byte[] data);
 	public void onActivate(int activePort);
-	public void onDeactivate();
+	public void onDeactivate(int port);
 	public void onReceivingStart(int receivingPort);
-	public void onReceivingStop();
+	public void onReceivingStop(int port);
 }
